@@ -50,7 +50,7 @@ Apesar de serem poucas funcionalidades, foram utlizados conceitos como:
 
 ## Deploy
 
-Indisponível.
+Aprecie o resultado do desafio [AQUI](https://mgckaled.github.io/ignite-react-desafio_github-blog).
 
 ## Tecnologias
 
