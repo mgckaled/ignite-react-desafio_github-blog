@@ -1,45 +1,83 @@
 import { faGithub } from "@fortawesome/free-brands-svg-icons"
 import { faBuilding, faUserGroup } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { useCallback, useEffect, useState } from "react"
 
 import { ExternalLink } from "../../../../components/ExternalLink"
+import { Spinner } from "../../../../components/Spinner"
+import { api } from "../../../../lib/axios"
 
 import { ProfileContainer, ProfileDetails, ProfilePicture } from "./styles"
 
+const username = import.meta.env.VITE_GITHUB_USERNAME
+
+interface ProfileData {
+  login: string
+  bio: string
+  avatar_url: string
+  html_url: string
+  name: string
+  company?: string
+  followers: number
+}
 
 export function Profile() {
+  const [profileData, setProfileData] = useState<ProfileData>({} as ProfileData)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const getProfileData = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const response = await api.get(`/users/${username}`)
+
+      setProfileData(response.data)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    getProfileData()
+  }, [getProfileData])
+
   return (
     <ProfileContainer>
-      <ProfilePicture src='https://github.com/mgckaled.png' />
-      <ProfileDetails>
-        <header>
-          <h1>Marcel Kaled</h1>
-          <ExternalLink
-            text='Ver no Github'
-            href='#'
-          />
-        </header>
-        <p>
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Ab nisi reprehenderit repellendus, doloribus
-          dignissimos sequi, quam quos voluptatem sapiente non earum laboriosam ad sit excepturi cum quis doloremque?
-          Accusamus, aut.
-        </p>
-        <ul>
-          <li>
-            <FontAwesomeIcon icon={faGithub} />
-            mgckaled
-          </li>
-          <li>
-            <FontAwesomeIcon icon={faBuilding} />
-            Autônomo
-          </li>
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <ProfilePicture src={profileData.avatar_url} />
 
-          <li>
-            <FontAwesomeIcon icon={faUserGroup} />
-            10 seguidores
-          </li>
-        </ul>
-      </ProfileDetails>
+          <ProfileDetails>
+            <header>
+              <h1>{profileData.name}</h1>
+
+              <ExternalLink
+                text='Github'
+                href={profileData.html_url}
+                target='_blank'
+              />
+            </header>
+            <p>{profileData.bio}</p>
+            <ul>
+              <li>
+                <FontAwesomeIcon icon={faGithub} />
+                {profileData.login}
+              </li>
+              {profileData?.company && (
+                <li>
+                  <FontAwesomeIcon icon={faBuilding} />
+                  {profileData.company}
+                </li>
+              )}
+              <li>
+                <FontAwesomeIcon icon={faUserGroup} />
+                {profileData.followers} seguidores
+              </li>
+            </ul>
+          </ProfileDetails>
+        </>
+      )}
     </ProfileContainer>
   )
 }
